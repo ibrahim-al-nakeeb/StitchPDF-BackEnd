@@ -1,27 +1,32 @@
 import json
 import boto3
 
-s3 = boto3.client('s3')
+s3_client = boto3.client('s3')
+BUCKET_NAME = 'stitchpdf-merged-files'
+EXPIRATION = 30  # URL expiration time in seconds
 
 def lambda_handler(event, context):
-    # Extract the "tag" value
-    tag = event["tag"]
-    
-    
-    presignedURL = s3.generate_presigned_url(
-        ClientMethod='get_object',
-        Params={'Bucket': 'merge-wizard-pdf-merged-files', 'Key': '{}.pdf'.format(tag)},
-        ExpiresIn=30  # URL expiration time in seconds 
-    );
-    
-    response = {
-        'presigned_url': presignedURL
-        
-    }
-    
-    print(tag)
-    
-    return {
-        'statusCode': 200,
-        'body': json.dumps(response)
-    }
+	tag = event.get("tag")
+	if not tag:
+		return {
+			'statusCode': 400,
+			'body': json.dumps({'error': 'Missing "tag" in request'})
+		}
+
+	try:
+		presigned_url = s3_client.generate_presigned_url(
+			ClientMethod='get_object',
+			Params={'Bucket': BUCKET_NAME, 'Key': f'{tag}.pdf'},
+			ExpiresIn=EXPIRATION
+		)
+		
+		return {
+			'statusCode': 200,
+			'body': json.dumps({'presigned_url': presigned_url})
+		}
+		
+	except Exception as e:
+		return {
+			'statusCode': 500,
+			'body': json.dumps({'error': str(e)})
+		}

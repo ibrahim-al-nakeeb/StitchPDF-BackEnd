@@ -1,8 +1,9 @@
 import json
 import boto3
+import os
 
 s3_client = boto3.client('s3')
-BUCKET_NAME = 'stitchpdf-merged-files'
+BUCKET = os.environ.get('BUCKET_NAME')
 EXPIRATION = 30  # URL expiration time in seconds
 
 def lambda_handler(event, context):

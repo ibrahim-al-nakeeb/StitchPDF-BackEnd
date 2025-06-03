@@ -51,6 +51,19 @@ def extract_group_id_from_csv(bucket, key):
     except Exception:
         raise RuntimeError("Failed to read or parse groupId from CSV")
 
+def list_files_with_group_id(bucket, group_id, exclude_key=None):
+    try:
+        paginator = s3.get_paginator('list_objects_v2')
+        response_iterator = paginator.paginate(Bucket=bucket, Prefix=group_id)
+        files = []
+        for page in response_iterator:
+            for obj in page.get('Contents', []):
+                if obj['Key'] != exclude_key and obj['Key'].endswith('.pdf'):
+                    files.append({'Key': obj['Key'], 'LastModified': obj['LastModified']})
+        return sorted(files, key=lambda x: x['LastModified'])
+    except ClientError as e:
+        raise RuntimeError(f"Error listing S3 objects: {str(e)}")
+
     except Exception as e:
         error_message = 'An error occurred while processing the request. Please try again later. Error details: {}'.format(str(e), e)
         print(error_message)

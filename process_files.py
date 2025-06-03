@@ -94,3 +94,16 @@ def upload_merged_file(bucket, key, content_bytes):
     except ClientError as e:
         raise RuntimeError(f"Failed to upload merged PDF: {str(e)}")
 
+def handle_merge_failure(bucket, files, group_id):
+    for file in files:
+        original_key = file['Key']
+        filename = original_key.split('/')[-1]
+        dest_key = f"{group_id}/{filename}"
+
+        try:
+            obj = s3.get_object(Bucket=bucket, Key=original_key)
+            s3.put_object(Bucket=INVALID_BUCKET, Key=dest_key, Body=obj['Body'].read())
+        except Exception:
+            # If even moving fails, skip it, we're already in failure mode
+            pass
+

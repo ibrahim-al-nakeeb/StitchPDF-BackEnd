@@ -83,3 +83,14 @@ def merge_files(bucket, files):
         merger.close()
         raise RuntimeError(f"Failed to merge PDF: {str(e)}")
 
+def upload_merged_file(bucket, key, content_bytes):
+    try:
+        s3.put_object(
+            Bucket=bucket,
+            Key=key,
+            Body=content_bytes,
+            ContentType='application/pdf'
+        )
+    except ClientError as e:
+        raise RuntimeError(f"Failed to upload merged PDF: {str(e)}")
+

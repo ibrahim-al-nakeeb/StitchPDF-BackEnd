@@ -7,17 +7,17 @@ BUCKET = os.environ.get('BUCKET_NAME')
 EXPIRATION = 30  # URL expiration time in seconds
 
 def lambda_handler(event, context):
-	tag = event.get("tag")
-	if not tag:
+	group_id = event.get("groupId")
+	if not group_id:
 		return {
 			'statusCode': 400,
-			'body': json.dumps({'error': 'Missing "tag" in request'})
+			'body': json.dumps({'error': 'Missing "group_id" in request'})
 		}
 
 	try:
 		presigned_url = s3_client.generate_presigned_url(
 			ClientMethod='get_object',
-			Params={'Bucket': BUCKET_NAME, 'Key': f'{tag}.pdf'},
+			Params={'Bucket': BUCKET_NAME, 'Key': f'{group_id}/merged_output.pdf.pdf'},
 			ExpiresIn=EXPIRATION
 		)
 		

@@ -2,11 +2,14 @@ import boto3
 from botocore.exceptions import ClientError
 import uuid
 import json
+import time
 from datetime import datetime
 
 dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table(os.environ.get('TABLE_NAME'))
 max_attempts = 5
+ttl_seconds = 60 * 60  # 60 minutes = 3600 seconds
+expiration_time = int(time.time()) + ttl_seconds
 
 def lambda_handler(event, context):
 	attempt = 0
@@ -17,7 +20,8 @@ def lambda_handler(event, context):
 			table.put_item(
 				Item={
 					'groupId': group_id,
-					'createdAt': datetime.utcnow().isoformat()
+					'createdAt': datetime.utcnow().isoformat(),
+                    'expiresAt': expiration_time,  # ⏳ DynamoDB TTL attribute
 				},
 				ConditionExpression='attribute_not_exists(groupId)'
 			)

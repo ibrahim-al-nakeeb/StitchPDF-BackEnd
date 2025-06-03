@@ -64,15 +64,22 @@ def list_files_with_group_id(bucket, group_id, exclude_key=None):
     except ClientError as e:
         raise RuntimeError(f"Error listing S3 objects: {str(e)}")
 
+def merge_files(bucket, files):
+    merger = PdfMerger()
+
+    try:
+        for file in files:
+            obj = s3.get_object(Bucket=bucket, Key=file['Key'])
+            stream = io.BytesIO(obj['Body'].read())
+            merger.append(stream)
+
+        output = io.BytesIO()
+        merger.write(output)
+        merger.close()
+        output.seek(0)
+        return output.read()
+
     except Exception as e:
-        error_message = 'An error occurred while processing the request. Please try again later. Error details: {}'.format(str(e), e)
-        print(error_message)
-        if(tagged_file_list):
-            tagged_file_list.append(key)
-            corrupted_files = [s3.get_object(Bucket=bucket, Key=file_key) for file_key in tagged_file_list]
-            print(tagged_file_list)
-            print(corrupted_files)
-            [s3.put_object(Body=file['Body'].read(), Bucket='merge-wizard-pdf-invalid-files', Key=file_key) for file, file_key in zip(corrupted_files, tagged_file_list)]
-            print("put_object")
-            [s3.delete_object(Bucket=bucket,Key=key,) for key in tagged_file_list]
-            print("delete_object")
+        merger.close()
+        raise RuntimeError(f"Failed to merge PDF: {str(e)}")
+

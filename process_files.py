@@ -30,6 +30,15 @@ def lambda_handler(event, context):
     except Exception as e:
         return error(str(e), 500)
 
+# --- Helpers ---
+
+def extract_s3_info(event):
+    try:
+        record = event['Records'][0]
+        return record['s3']['bucket']['name'], record['s3']['object']['key']
+    except (KeyError, IndexError):
+        raise ValueError("Invalid S3 event structure")
+
     except Exception as e:
         error_message = 'An error occurred while processing the request. Please try again later. Error details: {}'.format(str(e), e)
         print(error_message)

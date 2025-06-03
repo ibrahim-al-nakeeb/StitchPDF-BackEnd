@@ -17,7 +17,7 @@ def lambda_handler(event, context):
         files = list_files_with_group_id(bucket, group_id, exclude_key=key)
 
         try:
-            merged_pdf = merge_files_by_date(bucket, files)
+            merged_pdf = merge_files(bucket, files)
         except Exception:
             handle_merge_failure(bucket, files, group_id)
             return error(f"Failed to merge PDFs.", 500)

@@ -7,7 +7,9 @@ BUCKET = os.environ.get('BUCKET_NAME')
 EXPIRATION = 30  # URL expiration time in seconds
 
 def lambda_handler(event, context):
-	group_id = event.get("groupId")
+	query = event.get('queryStringParameters') or {}
+	group_id = query.get('groupId')
+
 	if not group_id:
 		return {
 			'statusCode': 400,

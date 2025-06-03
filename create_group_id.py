@@ -9,7 +9,7 @@ from datetime import datetime
 dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table(os.environ.get('TABLE_NAME'))
 max_attempts = 5
-ttl_seconds = 60 * 60  # 60 minutes = 3600 seconds
+ttl_seconds = 60 * 60  # 60 minutes
 expiration_time = int(time.time()) + ttl_seconds
 
 def lambda_handler(event, context):

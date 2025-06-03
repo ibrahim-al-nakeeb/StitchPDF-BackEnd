@@ -1,51 +1,14 @@
-import json
 import boto3
-import urllib.parse
-import PyPDF2
-import io
 import csv
+import io
+import time
+from datetime import datetime
+from PyPDF2 import PdfMerger
+from botocore.exceptions import ClientError
 
 s3 = boto3.client('s3')
-
-
-def get_session_tag(bucket, key):
-    text_file_object = s3.get_object(Bucket=bucket, Key=key)
-    text_data = text_file_object['Body'].read().decode('utf-8')
-    reader = csv.DictReader(text_data.splitlines())
-    row = next(reader, None)  # Read the first row
-    return row['session_tag']
-
-
-def filter_object_by_tag(Bucket, Key, Value):
-    # Retrieve all objects in the bucket
-    response = s3.list_objects_v2(Bucket=Bucket)
-    # Filter objects based on the specified tag
-    tagged_file_list = []
-    for obj in response['Contents']:
-        object_tags = s3.get_object_tagging(Bucket=Bucket,Key=obj['Key'])
-        for tag_set in object_tags['TagSet']:
-            if(tag_set['Key'] == Key and tag_set['Value'] == Value and obj['Key'].endswith('.pdf')):
-                tagged_file_list.append(obj)
-                break
-    tagged_file_list = sorted(tagged_file_list, key=lambda x: x['LastModified'])
-    tagged_file_list = [obj['Key'] for obj in tagged_file_list]
-    return tagged_file_list
-
-
-def merge_pdf_files(bucket, file_keys):
-    pdf_merger = PyPDF2.PdfMerger()
-
-    for file_key in file_keys:
-        response = s3.get_object(Bucket=bucket, Key=file_key)
-        pdf_file = response['Body'].read()
-        pdf_stream = io.BytesIO(pdf_file)
-        pdf_merger.append(pdf_stream)
-    merged_pdf = io.BytesIO()
-    pdf_merger.write(merged_pdf)
-    merged_pdf.seek(0)
-    merged_pdf_bytes = merged_pdf.getvalue()
-    return merged_pdf
-
+VALID_BUCKET = os.environ['VALID_FILES_BUCKET']
+INVALID_BUCKET = os.environ['INVALID_FILES_BUCKET']
 
 def lambda_handler(event, context):
     bucket = event['Records'][0]['s3']['bucket']['name']

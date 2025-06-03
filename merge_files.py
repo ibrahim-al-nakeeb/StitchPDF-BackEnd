@@ -1,5 +1,4 @@
 import boto3
-import csv
 import io
 import time
 from datetime import datetime
@@ -13,7 +12,7 @@ INVALID_BUCKET = os.environ['INVALID_FILES_BUCKET']
 def lambda_handler(event, context):
     try:
         bucket, key = extract_s3_info(event)
-        group_id = extract_group_id_from_csv(bucket, key)
+        group_id = extract_group_id_from_json(bucket, key)
         files = list_files_with_group_id(bucket, group_id, exclude_key=key)
 
         try:
@@ -39,17 +38,20 @@ def extract_s3_info(event):
     except (KeyError, IndexError):
         raise ValueError("Invalid S3 event structure")
 
-def extract_group_id_from_csv(bucket, key):
+def extract_group_id_from_json(bucket, key):
     try:
         obj = s3.get_object(Bucket=bucket, Key=key)
         content = obj['Body'].read().decode('utf-8')
-        reader = csv.DictReader(io.StringIO(content))
-        first_row = next(reader, None)
-        if not first_row or 'groupId' not in first_row:
-            raise ValueError("CSV is missing 'groupId'")
-        return first_row['groupId']
+        data = json.loads(content)
+
+        # Expecting a flat JSON object like: { "groupId": "..." }
+        if 'groupId' not in data:
+            raise ValueError("JSON is missing 'groupId'")
+
+        return data['groupId']
+
     except Exception:
-        raise RuntimeError("Failed to read or parse groupId from CSV")
+        raise RuntimeError("Failed to read or parse groupId from JSON")
 
 def list_files_with_group_id(bucket, group_id, exclude_key=None):
     try:

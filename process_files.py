@@ -39,6 +39,18 @@ def extract_s3_info(event):
     except (KeyError, IndexError):
         raise ValueError("Invalid S3 event structure")
 
+def extract_group_id_from_csv(bucket, key):
+    try:
+        obj = s3.get_object(Bucket=bucket, Key=key)
+        content = obj['Body'].read().decode('utf-8')
+        reader = csv.DictReader(io.StringIO(content))
+        first_row = next(reader, None)
+        if not first_row or 'groupId' not in first_row:
+            raise ValueError("CSV is missing 'groupId'")
+        return first_row['groupId']
+    except Exception:
+        raise RuntimeError("Failed to read or parse groupId from CSV")
+
     except Exception as e:
         error_message = 'An error occurred while processing the request. Please try again later. Error details: {}'.format(str(e), e)
         print(error_message)

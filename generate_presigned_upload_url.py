@@ -5,7 +5,7 @@ import urllib.parse
 
 s3 = boto3.client('s3')
 BUCKET = os.environ.get('BUCKET_NAME')
-ALLOWED_EXTENSIONS = ['.pdf', '.csv']
+ALLOWED_EXTENSIONS = ['.pdf', '.json']
 EXPIRATION = 30  # URL expiration time in seconds
 
 def lambda_handler(event, context):

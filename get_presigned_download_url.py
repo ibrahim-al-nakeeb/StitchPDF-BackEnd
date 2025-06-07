@@ -13,11 +13,11 @@ def lambda_handler(event, context):
 	if not group_id:
 		return {
 			'statusCode': 400,
-			'body': json.dumps({'error': 'Missing "group_id" in request'})
+			'body': 'Missing "group_id" in request'
 		}
 
 	try:
-		presigned_url = s3_client.generate_presigned_url(
+		url = s3_client.generate_presigned_url(
 			ClientMethod='get_object',
 			Params={'Bucket': BUCKET_NAME, 'Key': f'{group_id}/merged_output.pdf.pdf'},
 			ExpiresIn=EXPIRATION
@@ -25,11 +25,14 @@ def lambda_handler(event, context):
 		
 		return {
 			'statusCode': 200,
-			'body': json.dumps({'presigned_url': presigned_url})
+			'body': json.dumps({'url': url})
 		}
 		
 	except Exception as e:
 		return {
 			'statusCode': 500,
-			'body': json.dumps({'error': str(e)})
+			'headers': {
+				'Access-Control-Allow-Origin': '*'
+			},
+			'body': str(e)
 		}

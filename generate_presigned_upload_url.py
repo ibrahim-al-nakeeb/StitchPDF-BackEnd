@@ -16,13 +16,13 @@ def lambda_handler(event, context):
 	if not key or not tag:
 		return {
 			'statusCode': 400,
-			'body': json.dumps({'error': 'Missing "filename" or "tag" query parameter'})
+			'body': 'Missing "filename" or "tag" query parameter'
 		}
 
 	if not any(key.lower().endswith(ext) for ext in ALLOWED_EXTENSIONS):
 		return {
 			'statusCode': 400,
-			'body': json.dumps({'error': 'Only PDF or CSV files are allowed'})
+			'body': 'error': 'Only PDF or JSON files are allowed'
 		}
 
 	try:

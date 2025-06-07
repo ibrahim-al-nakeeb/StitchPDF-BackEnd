@@ -22,7 +22,7 @@ def lambda_handler(event, context):
 				Item={
 					'groupId': group_id,
 					'createdAt': datetime.utcnow().isoformat(),
-                    'expiresAt': expiration_time,  # ⏳ DynamoDB TTL attribute
+					'expiresAt': expiration_time,  # ⏳ DynamoDB TTL attribute
 				},
 				ConditionExpression='attribute_not_exists(groupId)'
 			)
@@ -42,5 +42,9 @@ def lambda_handler(event, context):
 	# ❌ Too many collisions, something is wrong
 	return {
 		'statusCode': 500,
-		'body': json.dumps({'error': 'Could not generate unique groupId'})
+		'headers': {
+			'Access-Control-Allow-Origin': '*'
+		},
+		'body': 'Could not generate unique groupId'
 	}
+

@@ -26,23 +26,18 @@ def lambda_handler(event, context):
 		}
 
 	try:
-		# Ensure the tag is URL-encoded
-		tagging = urllib.parse.quote(tag, safe='=&')
-
 		url = s3.generate_presigned_url(
 			ClientMethod='put_object',
 			Params={
 				'Bucket': BUCKET,
-				'Key': key,
-				'Tagging': tagging
+				'Key': key
 			},
 			ExpiresIn=EXPIRATION
 		)
 
-		return {
-			'statusCode': 200,
-			'body': json.dumps({'url': url})
-		}
+		return build_response(200, {
+			'presigned_url': url
+		})
 	except Exception as e:
 		return {
 			'statusCode': 500,

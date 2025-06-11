@@ -17,17 +17,15 @@ def lambda_handler(event, context):
 
 		try:
 			merged_pdf = merge_files(bucket, files)
-		except Exception:
+		except Exception as e:
 			handle_merge_failure(bucket, files, group_id)
-			return error(f"Failed to merge PDFs.", 500)
+			raise e
 
 		output_key = f"{group_id}/merged_output.pdf"
 		upload_merged_file(VALID_BUCKET, output_key, merged_pdf)
 
-		return success(f"Merged {len(files)} PDFs into {output_key}")
-
 	except Exception as e:
-		return error(str(e), 500)
+		raise RuntimeError(f"Unexpected error: {str(e)}")
 
 # --- Helpers ---
 

@@ -102,17 +102,3 @@ def handle_merge_failure(bucket, files, group_id):
 		except Exception:
 			# If even moving fails, skip it, we're already in failure mode
 			pass
-
-# --- Response Helpers ---
-
-def success(message):
-	return {
-		'statusCode': 200,
-		'body': message
-	}
-
-def error(message, code):
-	return {
-		'statusCode': code,
-		'body': f"Error: {message}"
-	}

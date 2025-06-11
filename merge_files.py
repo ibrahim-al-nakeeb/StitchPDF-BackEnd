@@ -37,19 +37,15 @@ def extract_s3_info(event):
 		raise ValueError("Invalid S3 event structure")
 
 def extract_group_id_from_json(bucket, key):
-	try:
-		obj = s3.get_object(Bucket=bucket, Key=key)
-		content = obj['Body'].read().decode('utf-8')
-		data = json.loads(content)
+	obj = s3.get_object(Bucket=bucket, Key=key)
+	content = obj['Body'].read().decode('utf-8')
+	data = json.loads(content)
 
-		# Expecting a flat JSON object like: { "groupId": "..." }
-		if 'groupId' not in data:
-			raise ValueError("JSON is missing 'groupId'")
+	# Expecting a flat JSON object like: { "groupId": "..." }
+	if 'groupId' not in data:
+		raise ValueError("JSON is missing 'groupId'")
 
-		return data['groupId']
-
-	except Exception:
-		raise RuntimeError("Failed to read or parse groupId from JSON")
+	return data['groupId']
 
 def list_files_with_group_id(bucket, group_id, exclude_key=None):
 	try:

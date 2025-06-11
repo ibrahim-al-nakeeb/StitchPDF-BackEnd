@@ -40,3 +40,13 @@ def lambda_handler(event, context):
 		return build_response(500, {
 			'errorMessage': str(e)
 		})
+
+def build_response(status_code, body):
+	return {
+		'statusCode': status_code,
+		'body': json.dumps(body),
+		'headers': {
+			'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
+			'Content-Type': 'application/json'
+		}
+	}

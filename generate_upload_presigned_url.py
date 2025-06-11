@@ -12,13 +12,11 @@ ALLOWED_ORIGIN = os.environ.get('ALLOWED_ORIGIN')
 def lambda_handler(event, context):
 	query = event.get('queryStringParameters') or {}
 	key = query.get('filename')
-	tag = query.get('tag')  # e.g., tag=group:id
 
-	if not key or not tag:
-		return {
-			'statusCode': 400,
-			'body': 'Missing "filename" or "tag" query parameter'
-		}
+	if not key:
+		return build_response(400, {
+			'errorMessage': 'Missing "filename" query parameter'
+		})
 
 	if not any(key.lower().endswith(ext) for ext in ALLOWED_EXTENSIONS):
 		return {

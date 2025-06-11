@@ -19,10 +19,9 @@ def lambda_handler(event, context):
 		})
 
 	if not any(key.lower().endswith(ext) for ext in ALLOWED_EXTENSIONS):
-		return {
-			'statusCode': 400,
-			'body': 'error': 'Only PDF or JSON files are allowed'
-		}
+		return build_response(400, {
+			'errorMessage': 'Only PDF or JSON files are allowed'
+		})
 
 	try:
 		url = s3.generate_presigned_url(

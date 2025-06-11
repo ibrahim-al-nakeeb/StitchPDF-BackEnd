@@ -6,7 +6,8 @@ import urllib.parse
 s3 = boto3.client('s3')
 BUCKET = os.environ.get('BUCKET_NAME')
 ALLOWED_EXTENSIONS = ['.pdf', '.json']
-EXPIRATION = 30  # URL expiration time in seconds
+EXPIRATION = os.environ.get('EXPIRATION')  # URL expiration time in seconds
+ALLOWED_ORIGIN = os.environ.get('ALLOWED_ORIGIN')
 
 def lambda_handler(event, context):
 	query = event.get('queryStringParameters') or {}

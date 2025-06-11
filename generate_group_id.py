@@ -11,6 +11,7 @@ table = dynamodb.Table(os.environ.get('TABLE_NAME'))
 max_attempts = 5
 ttl_seconds = 60 * 60  # 60 minutes
 expiration_time = int(time.time()) + ttl_seconds
+ALLOWED_ORIGIN = os.environ.get('ALLOWED_ORIGIN')
 
 def lambda_handler(event, context):
 	attempt = 0
@@ -26,25 +27,29 @@ def lambda_handler(event, context):
 				},
 				ConditionExpression='attribute_not_exists(groupId)'
 			)
-			return {
-				'statusCode': 200,
-				'body': json.dumps({'groupId': group_id})
-			}
+			return build_response(200, {
+				'groupId': group_id
+			})
 		except ClientError as e:
 			if e.response['Error']['Code'] == 'ConditionalCheckFailedException':
-				# ⚠️ Collision, try again
-				attempt += 1
+				attempt += 1 # Collision, try again
 				continue
 			else:
-				# ❌ Other error
-				raise
+				return build_response(500, {
+					'errorMessage': f'Unexpected error while accessing the database, details: {str(e)}'
+				})
 
-	# ❌ Too many collisions, something is wrong
+	# Too many collisions, something went wrong
+	return build_response(500, {
+		'errorMessage': 'Could not generate a unique groupId after multiple attempts.'
+	})
+
+def build_response(status_code, body):
 	return {
-		'statusCode': 500,
+		'statusCode': status_code,
+		'body': json.dumps(body),
 		'headers': {
-			'Access-Control-Allow-Origin': '*'
-		},
-		'body': 'Could not generate unique groupId'
+			'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
+			'Content-Type': 'application/json'
+		}
 	}
-

@@ -39,11 +39,6 @@ def lambda_handler(event, context):
 			'presigned_url': url
 		})
 	except Exception as e:
-		return {
-			'statusCode': 500,
-			'headers': {
-				'Content-Type': 'application/json',
-				'Access-Control-Allow-Origin': '*'
-			},
-			'body': str(e)
-		}
+		return build_response(500, {
+			'errorMessage': str(e)
+		})

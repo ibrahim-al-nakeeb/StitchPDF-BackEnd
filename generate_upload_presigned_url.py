@@ -1,7 +1,6 @@
 import json
 import boto3
 import os
-import urllib.parse
 
 s3 = boto3.client('s3')
 BUCKET = os.environ.get('BUCKET_NAME')

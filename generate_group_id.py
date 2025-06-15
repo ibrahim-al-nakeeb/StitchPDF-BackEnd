@@ -24,6 +24,7 @@ def lambda_handler(event, context):
 					'groupId': group_id,
 					'createdAt': datetime.utcnow().isoformat(),
 					'expiresAt': expiration_time,  # ⏳ DynamoDB TTL attribute
+                    'status': 'PENDING'
 				},
 				ConditionExpression='attribute_not_exists(groupId)'
 			)

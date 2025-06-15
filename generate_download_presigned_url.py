@@ -1,12 +1,18 @@
 import json
 import boto3
 import os
+import time
 from botocore.exceptions import ClientError
 
 s3_client = boto3.client('s3')
+dynamodb = boto3.resource('dynamodb')
+table = dynamodb.Table(os.environ.get('TABLE_NAME'))
+
 BUCKET = os.environ.get('BUCKET_NAME')
-EXPIRATION = os.environ.get('EXPIRATION')  # URL expiration time in seconds
+EXPIRATION = os.environ.get('EXPIRATION') # URL expiration time in seconds
+MAX_ATTEMPTS = int(os.environ.get('MAX_ATTEMPTS'))
 ALLOWED_ORIGIN = os.environ.get('ALLOWED_ORIGIN')
+WAIT_SECONDS = float(os.environ.get('WAIT_SECONDS'))
 
 def lambda_handler(event, context):
 	query = event.get('queryStringParameters') or {}

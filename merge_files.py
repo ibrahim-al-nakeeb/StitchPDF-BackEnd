@@ -104,3 +104,11 @@ def handle_merge_failure(bucket, files, group_id):
 		except Exception:
 			# If even moving fails, skip it, we're already in failure mode
 			pass
+
+def update_merge_status(group_id, status):
+	table.update_item(
+		Key={'groupId': group_id},
+		UpdateExpression='SET #s = :s',
+		ExpressionAttributeNames={'#s': 'status'},
+		ExpressionAttributeValues={':s': status}
+	)

@@ -26,12 +26,13 @@ def lambda_handler(event, context):
 			handle_merge_failure(bucket, files, group_id)
 			raise e
 
-		output_key = f"{group_id}/merged_output.pdf"
+		output_key = f'{group_id}/merged_output.pdf'
 		upload_merged_file(VALID_BUCKET, output_key, merged_pdf)
 		update_merge_status(group_id, 'SUCCESS')
 
 	except Exception as e:
 		update_merge_status(group_id, 'FAILED')
+		raise RuntimeError(f'Unexpected error: {str(e)}')
 
 # --- Helpers ---
 
@@ -40,16 +41,16 @@ def extract_s3_info(event):
 		record = event['Records'][0]
 		return record['s3']['bucket']['name'], record['s3']['object']['key']
 	except (KeyError, IndexError):
-		raise ValueError("Invalid S3 event structure")
+		raise ValueError('Invalid S3 event structure')
 
 def extract_group_id_from_json(bucket, key):
 	obj = s3.get_object(Bucket=bucket, Key=key)
 	content = obj['Body'].read().decode('utf-8')
 	data = json.loads(content)
 
-	# Expecting a flat JSON object like: { "groupId": "..." }
+	# Expecting a flat JSON object like: { 'groupId': '...' }
 	if 'groupId' not in data:
-		raise ValueError("JSON is missing 'groupId'")
+		raise ValueError('JSON is missing "groupId"')
 
 	return data['groupId']
 
@@ -64,7 +65,7 @@ def list_files_with_group_id(bucket, group_id, exclude_key=None):
 					files.append({'Key': obj['Key'], 'LastModified': obj['LastModified']})
 		return sorted(files, key=lambda x: x['LastModified'])
 	except ClientError as e:
-		raise RuntimeError(f"Error listing S3 objects: {str(e)}")
+		raise RuntimeError(f'Error listing S3 objects: {str(e)}')
 
 def merge_files(bucket, files):
 	merger = PdfMerger()
@@ -83,7 +84,7 @@ def merge_files(bucket, files):
 
 	except Exception as e:
 		merger.close()
-		raise RuntimeError(f"Failed to merge PDF: {str(e)}")
+		raise RuntimeError(f'Failed to merge PDF: {str(e)}')
 
 def upload_merged_file(bucket, key, content_bytes):
 	try:
@@ -94,13 +95,13 @@ def upload_merged_file(bucket, key, content_bytes):
 			ContentType='application/pdf'
 		)
 	except ClientError as e:
-		raise RuntimeError(f"Failed to upload merged PDF: {str(e)}")
+		raise RuntimeError(f'Failed to upload merged PDF: {str(e)}')
 
 def handle_merge_failure(bucket, files, group_id):
 	for file in files:
 		original_key = file['Key']
 		filename = original_key.split('/')[-1]
-		dest_key = f"{group_id}/{filename}"
+		dest_key = f'{group_id}/{filename}'
 
 		try:
 			obj = s3.get_object(Bucket=bucket, Key=original_key)

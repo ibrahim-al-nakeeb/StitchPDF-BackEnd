@@ -8,6 +8,9 @@ from PyPDF2 import PdfMerger
 from botocore.exceptions import ClientError
 
 s3 = boto3.client('s3')
+dynamodb = boto3.resource('dynamodb')
+table = dynamodb.Table(os.environ.get('TABLE_NAME'))
+
 VALID_BUCKET = os.environ['VALID_FILES_BUCKET']
 INVALID_BUCKET = os.environ['INVALID_FILES_BUCKET']
 

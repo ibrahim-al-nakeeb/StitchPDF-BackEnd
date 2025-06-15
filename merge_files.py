@@ -28,9 +28,10 @@ def lambda_handler(event, context):
 
 		output_key = f"{group_id}/merged_output.pdf"
 		upload_merged_file(VALID_BUCKET, output_key, merged_pdf)
+		update_merge_status(group_id, 'SUCCESS')
 
 	except Exception as e:
-		raise RuntimeError(f"Unexpected error: {str(e)}")
+		update_merge_status(group_id, 'FAILED')
 
 # --- Helpers ---
 

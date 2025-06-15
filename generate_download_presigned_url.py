@@ -25,33 +25,29 @@ def lambda_handler(event, context):
 
 	key = f'{group_id}/merged_output.pdf'
 
-	try:
-		s3_client.head_object(Bucket=BUCKET, Key=key)
+	for _ in range(MAX_ATTEMPTS):
+		try:
+			result = table.get_item(Key={'groupId': group_id})
+			status = result.get('Item', {}).get('status')
 
-		url = s3_client.generate_presigned_url(
-			ClientMethod='get_object',
-			Params={'Bucket': BUCKET, 'Key': f'{group_id}/merged_output.pdf'},
-			ExpiresIn=EXPIRATION
-		)
-		
-		return build_response(200, {
-			'presigned_url': url
-		})
-		
-	except ClientError as e:
-		if e.response['Error']['Code'] in ['404', 'NoSuchKey']:
-			return build_response(404, {
-				'errorMessage': f'File not found: {key}'
-			})
-		else:
-			return build_response(500, {
-				'errorMessage': f'ClientError: {str(e)}'
-			})
+			if status == 'SUCCESS':
+				url = s3_client.generate_presigned_url(
+					ClientMethod='get_object',
+					Params={'Bucket': BUCKET, 'Key': key},
+					ExpiresIn=EXPIRATION
+				)
+				return build_response(200, {'presigned_url': url})
 
-	except Exception as e:
-		return build_response(500, {
-			'errorMessage': str(e)
-		})
+			elif status == 'FAILED':
+				return build_response(400, {'errorMessage': 'Merge failed'})
+
+			# else: PENDING or missing, wait and retry
+			time.sleep(WAIT_SECONDS)
+
+		except Exception as e:
+			return build_response(500, {'errorMessage': str(e)})
+
+	return build_response(202, {'message': 'Still processing, try again later'})
 
 def build_response(status_code, body):
 	return {

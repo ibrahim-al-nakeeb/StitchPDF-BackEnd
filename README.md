@@ -261,12 +261,13 @@ This Lambda function generates a pre-signed S3 `GET` URL to download a merged PD
 
 **Possible Status Codes:**
 
-| Code | Meaning                                |
-| ---- | -------------------------------------- |
-| 200  | Download link successfully generated   |
-| 202  | Merge still in progress                |
-| 400  | Missing or failed merge                |
-| 500  | Internal error (DynamoDB/S3 exception) |
+| Code | Meaning                                 |
+| ---- | --------------------------------------  |
+| 200  | Download link successfully generated    |
+| 202  | Merge still in progress                 |
+| 400  | Missing or failed merge                 |
+| 404  | No record found for the given `groupId` |
+| 500  | Internal error (DynamoDB/S3 exception)  |
 
 ---
 

@@ -54,26 +54,26 @@ The diagram below outlines the backend design of StitchPDF. It highlights how ea
 
 1. **Group ID Generation**
 
-   The client sends a request to API Gateway, which invokes a Lambda function to generate a UUID-based `groupId`. The ID is stored in DynamoDB along with creation time, status (`PENDING`), and TTL for automatic expiration.
+   The client sends a request to API Gateway, which invokes a [Lambda function](#generate-group-id) to generate a UUID-based `groupId`. The ID is stored in DynamoDB along with creation time, status (`PENDING`), and TTL for automatic expiration.
 
 2. **File Upload**
 
-   For each file, the client requests a pre-signed S3 `PUT` URL (valid for 30 seconds) via API Gateway. A Lambda function validates the file extension (`.pdf` or `.json`) and generates the URL. The client uploads up to 5 PDF files to the **In-Process** S3 bucket using these URLs.
+   For each file, the client requests a pre-signed S3 `PUT` URL (valid for 30 seconds) via API Gateway. A [Lambda function](#generate-upload-presigned-url) validates the file extension (`.pdf` or `.json`) and generates the URL. The client uploads up to 5 PDF files to the **In-Process** S3 bucket using these URLs.
 
 3. **Trigger File Upload**
 
-   After uploading all PDFs, the client uploads a `.json` file containing only the `groupId` to the same S3 bucket. This upload triggers the merge Lambda via an S3 event notification.
+   After uploading all PDFs, the client uploads a `.json` file containing only the `groupId` to the same S3 bucket. This upload triggers the [merge Lambda](#merge-files) via an S3 event notification.
 
 4. **Merge Processing**
 
-   The merge Lambda retrieves all files associated with the `groupId` from the **In-Process** bucket, attempts to merge them, and updates the status in DynamoDB:
+   The [merge Lambda](#merge-files) retrieves all files associated with the `groupId` from the **In-Process** bucket, attempts to merge them, and updates the status in DynamoDB:
 
    * If the merge succeeds, the output is written to the **Valid** bucket and status is set to `SUCCESS`.
    * If it fails, the original files are moved to the **Invalid** bucket and status is set to `FAILED`.
 
 5. **Download**
 
-   The client polls API Gateway for a download URL by providing the `groupId`. A Lambda function checks the status in DynamoDB:
+   The client polls API Gateway for a download URL by providing the `groupId`. A [Lambda function](#generate-download-presigned-url) checks the status in DynamoDB:
 
    * If `SUCCESS`, it returns a pre-signed S3 `GET` URL (valid for 30 seconds).
    * If `FAILED`, it returns an error.

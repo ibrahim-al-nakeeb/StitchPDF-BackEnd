@@ -1,7 +1,6 @@
 import json
 import boto3
 import os
-import time
 from botocore.exceptions import ClientError
 
 s3_client = boto3.client('s3')

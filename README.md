@@ -240,8 +240,6 @@ This Lambda function generates a pre-signed S3 `GET` URL to download a merged PD
 | `TABLE_NAME`     | DynamoDB table storing group metadata                           | ✅        |
 | `BUCKET_NAME`    | S3 bucket where merged files are stored                         | ✅        |
 | `EXPIRATION`     | Expiration time (in seconds) for the pre-signed download URL    | ✅        |
-| `MAX_ATTEMPTS`   | Maximum number of retries before returning a 202 response       | ✅        |
-| `WAIT_SECONDS`   | Wait time (in seconds) between retries when status is `PENDING` | ✅        |
 | `ALLOWED_ORIGIN` | Allowed CORS origin for the HTTP response                       | ✅        |
 
 **Behavior Notes:**

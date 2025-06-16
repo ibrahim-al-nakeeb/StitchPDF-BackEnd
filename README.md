@@ -77,7 +77,7 @@ The diagram below outlines the backend design of StitchPDF. It highlights how ea
 
    * If `SUCCESS`, it returns a pre-signed S3 `GET` URL (valid for 30 seconds).
    * If `FAILED`, it returns an error.
-   * If still `PENDING`, it waits and retries for a fixed number of attempts before responding with a 202 status.
+   * If still `PENDING`, it returns a respond with a 202 status.
 
 6. **Cleanup**
 
@@ -226,13 +226,12 @@ This Lambda function generates a pre-signed S3 `PUT` URL for securely uploading 
 
 ### `generate-download-presigned-url`
 
-This Lambda function generates a pre-signed S3 `GET` URL to download a merged PDF file associated with a specific `groupId`. It queries DynamoDB to check the merge status and polls for up to a fixed number of attempts.
+This Lambda function generates a pre-signed S3 `GET` URL to download a merged PDF file associated with a specific `groupId`. It queries DynamoDB to check the merge status.
 
 **Purpose:**
 
 * Check the merge status of a file group in DynamoDB
 * Return a pre-signed S3 `GET` URL for the merged PDF if available
-* Retry if the merge is still in progress (`PENDING`), or return an error if it failed
 
 **Environment Variables:**
 
@@ -250,7 +249,7 @@ This Lambda function generates a pre-signed S3 `GET` URL to download a merged PD
 * Checks DynamoDB for `groupId` status (`SUCCESS`, `FAILED`, or `PENDING`)
 * If `SUCCESS`, generates a pre-signed `GET` URL valid for `EXPIRATION` seconds
 * If `FAILED`, returns a 400 error with an appropriate message
-* If still `PENDING`, waits and retries up to `MAX_ATTEMPTS`, then returns a 202 response
+* If still `PENDING`, returns a 202 response
 
 **Example Response:**
 

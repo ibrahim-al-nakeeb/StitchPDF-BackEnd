@@ -25,29 +25,35 @@ def lambda_handler(event, context):
 
 	key = f'{group_id}/merged_output.pdf'
 
-	for _ in range(MAX_ATTEMPTS):
-		try:
-			result = table.get_item(Key={'groupId': group_id})
-			status = result.get('Item', {}).get('status')
+	try:
+		result = table.get_item(Key={'groupId': group_id})
+		item = result.get('Item')
 
-			if status == 'SUCCESS':
-				url = s3_client.generate_presigned_url(
-					ClientMethod='get_object',
-					Params={'Bucket': BUCKET, 'Key': key},
-					ExpiresIn=EXPIRATION
-				)
-				return build_response(200, {'presigned_url': url})
+		if not item:
+			return build_response(404, {
+				'errorMessage': f'No record found for groupId: {group_id}'
+			})
 
-			elif status == 'FAILED':
-				return build_response(400, {'errorMessage': 'Merge failed'})
+		status = item.get('status')
 
-			# else: PENDING or missing, wait and retry
-			time.sleep(WAIT_SECONDS)
+		if status == 'SUCCESS':
+			url = s3_client.generate_presigned_url(
+				ClientMethod='get_object',
+				Params={'Bucket': BUCKET, 'Key': key},
+				ExpiresIn=EXPIRATION
+			)
+			return build_response(200, {'presigned_url': url})
 
-		except Exception as e:
-			return build_response(500, {'errorMessage': str(e)})
+		elif status == 'FAILED':
+			return build_response(400, {'errorMessage': 'Merge failed'})
 
-	return build_response(202, {'message': 'Still processing, try again later'})
+		elif status == 'PENDING':
+			return build_response(202, {'message': 'Still processing, try again later'})
+
+		build_response(500, {'errorMessage': 'Unknown status value'})
+
+	except Exception as e:
+		return build_response(500, {'errorMessage': str(e)})
 
 def build_response(status_code, body):
 	return {

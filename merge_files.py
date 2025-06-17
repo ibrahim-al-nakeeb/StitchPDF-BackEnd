@@ -15,6 +15,8 @@ VALID_BUCKET = os.environ['VALID_FILES_BUCKET']
 INVALID_BUCKET = os.environ['INVALID_FILES_BUCKET']
 
 def lambda_handler(event, context):
+	group_id = None
+
 	try:
 		bucket, key = extract_s3_info(event)
 		group_id = extract_group_id_from_json(bucket, key)

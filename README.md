@@ -295,7 +295,7 @@ This Lambda function is triggered by an S3 `PutObject` event when a `.json` file
 * Triggered only by `.json` files in the In-Process bucket
 * Ignores the `.json` file itself during merging
 * Dynamically handles merge failures and partial errors gracefully
-* Requires `list_objects_v2`, `get_object`, and `put_object` permissions for S3
+* Configured with increased memory and timeout settings to support large file operations and longer processing times
 
 **Possible Status Codes:**
 
